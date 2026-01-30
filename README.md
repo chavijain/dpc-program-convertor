@@ -87,7 +87,7 @@ runner.run_all(verbose=True)
 ## Project Structure
 
 ```
-dpc-program-convertor/
+dpc-program-converter/
 ├── README.md           # This file
 ├── dpc_converter.py    # Main converter module
 ├── test_tool.py        # Testing tool

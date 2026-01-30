@@ -10,6 +10,7 @@ import sys
 import os
 import time
 import traceback
+import json
 from typing import List, Callable, Dict, Any, Tuple
 
 
@@ -63,8 +64,7 @@ class TestRunner:
             if self.verbose:
                 print(f"✗ ERROR ({duration:.3f}s)")
                 print(f"    {error_msg}")
-                if self.verbose:
-                    traceback.print_exc()
+                traceback.print_exc()
             return result
     
     def run_all(self, verbose: bool = False) -> bool:
@@ -206,8 +206,6 @@ def main():
     
     def test_json_to_yaml_conversion():
         """Test JSON to YAML conversion."""
-        import json
-        
         data = {"name": "test", "value": 123}
         json_str = json.dumps(data)
         
@@ -218,8 +216,6 @@ def main():
     
     def test_yaml_to_json_conversion():
         """Test YAML to JSON conversion."""
-        import json
-        
         yaml_str = "name: test\nvalue: 123\n"
         
         result = default_converter.convert(yaml_str, 'yaml', 'json')
@@ -232,8 +228,6 @@ def main():
     
     def test_round_trip_conversion():
         """Test that converting JSON->YAML->JSON preserves data."""
-        import json
-        
         original_data = {"key": "value", "number": 42, "list": [1, 2, 3]}
         json_str = json.dumps(original_data)
         
