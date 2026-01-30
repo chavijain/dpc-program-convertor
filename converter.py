@@ -96,7 +96,7 @@ class DataConverter:
         root = etree.fromstring(data.encode('utf-8'))
         return self._xml_to_dict(root)
     
-    def _xml_to_dict(self, element) -> Dict:
+    def _xml_to_dict(self, element: etree._Element) -> Dict:
         """Convert XML element to dictionary"""
         result = {}
         
@@ -138,7 +138,13 @@ class DataConverter:
         return etree.tostring(root, pretty_print=True, encoding='unicode')
     
     def _dict_to_xml(self, data: Union[Dict, List, str, int, float, bool], parent):
-        """Convert dictionary to XML elements"""
+        """
+        Convert dictionary to XML elements (recursive)
+        
+        Args:
+            data: The data to convert (dict, list, or primitive type)
+            parent: The parent XML element to populate
+        """
         if isinstance(data, dict):
             for key, value in data.items():
                 if key == '@attributes':
