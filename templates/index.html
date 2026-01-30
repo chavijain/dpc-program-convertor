@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data from DPC convertor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-file-earmark-excel me-2"></i>
+                Data from DPC convertor
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Upload Section -->
+        <div class="card mb-4" id="upload-section">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Excel File</h5>
+            </div>
+            <div class="card-body">
+                <div class="upload-area" id="upload-area">
+                    <i class="bi bi-file-earmark-arrow-up display-4 text-muted"></i>
+                    <p class="mt-3 mb-2">Drag and drop your Excel file here</p>
+                    <p class="text-muted small">or</p>
+                    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" class="d-none">
+                    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                        <i class="bi bi-folder2-open me-2"></i>Browse Files
+                    </button>
+                    <p class="text-muted small mt-2">Supported formats: .xlsx, .xls, .csv</p>
+                </div>
+                <div class="progress d-none" id="upload-progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Preview Section (hidden until file uploaded) -->
+        <div id="data-section" class="d-none">
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Rows</h6>
+                            <h3 id="total-rows">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Columns</h6>
+                            <h3 id="total-columns">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <h6 class="card-title">Rows Removed</h6>
+                            <h3 id="rows-removed">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Columns Removed</h6>
+                            <h3 id="columns-removed">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-table me-2"></i>Data Preview</h5>
+                    <div>
+                        <button class="btn btn-success btn-sm me-2" id="quick-process-btn">
+                            <i class="bi bi-lightning me-1"></i>Quick Process
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm me-2" id="filter-rows-btn">
+                            <i class="bi bi-funnel me-1"></i>Filter Rows
+                        </button>
+                        <button class="btn btn-outline-info btn-sm me-2" id="keep-columns-btn">
+                            <i class="bi bi-check2-square me-1"></i>Keep Columns
+                        </button>
+                        <button class="btn btn-outline-purple btn-sm me-2" id="transpose-btn" style="border-color: #6f42c1; color: #6f42c1;">
+                            <i class="bi bi-arrow-repeat me-1"></i>Transpose
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm me-2" id="remove-selected-rows" disabled>
+                            <i class="bi bi-trash me-1"></i>Remove Selected Rows
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm me-2" id="remove-columns-btn">
+                            <i class="bi bi-layout-three-columns me-1"></i>Remove Columns
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm me-2" id="reset-btn">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                        </button>
+                        <button class="btn btn-success btn-sm me-2" id="download-btn">
+                            <i class="bi bi-download me-1"></i>Download
+                        </button>
+                        <button class="btn btn-primary btn-sm" id="email-btn">
+                            <i class="bi bi-envelope me-1"></i>Email Report
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Single Table View (default) -->
+                    <div id="single-table-view">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="data-table">
+                                <thead class="table-dark">
+                                    <tr id="table-header"></tr>
+                                </thead>
+                                <tbody id="table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Split Table View (after Quick Process) -->
+                    <div id="split-table-view" class="d-none">
+                        <!-- Spring 2026 Table -->
+                        <div class="mb-4">
+                            <h4 class="text-primary mb-3"><i class="bi bi-sun me-2"></i>Spring 2026</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="spring-table">
+                                    <thead class="table-dark">
+                                        <tr id="spring-table-header"></tr>
+                                    </thead>
+                                    <tbody id="spring-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Fall 2026 Table -->
+                        <div>
+                            <h4 class="text-warning mb-3"><i class="bi bi-tree me-2"></i>Fall 2026</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="fall-table">
+                                    <thead class="table-dark">
+                                        <tr id="fall-table-header"></tr>
+                                    </thead>
+                                    <tbody id="fall-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload New File -->
+            <div class="text-center mb-4">
+                <button class="btn btn-outline-primary" id="new-upload-btn">
+                    <i class="bi bi-plus-circle me-2"></i>Upload New File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column Selection Modal -->
+    <div class="modal fade" id="columnModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Columns to Remove</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Check the columns you want to remove:</p>
+                    <div id="column-checkboxes"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-remove-columns">Remove Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Rows Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-funnel me-2"></i>Filter Rows by Column Value</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="filter-column-select" class="form-label">Select Column to Filter:</label>
+                        <select class="form-select" id="filter-column-select">
+                            <option value="">-- Select a column --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="filter-values-input" class="form-label">Values to Keep (one per line or comma-separated):</label>
+                        <textarea class="form-control" id="filter-values-input" rows="6" placeholder="Enter values to keep, e.g.:&#10;Woodhaven&#10;Marietta&#10;San Clemente"></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Only rows where the selected column matches one of these values will be kept.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-filter-rows">Apply Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keep Columns Modal -->
+    <div class="modal fade" id="keepColumnsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check2-square me-2"></i>Keep Specific Columns</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="keep-columns-input" class="form-label">Enter column names to keep (one per line):</label>
+                        <textarea class="form-control" id="keep-columns-input" rows="10" placeholder="Enter column names to keep, e.g.:&#10;BCR&#10;BOP&#10;ASR&#10;EV1 BB Vol"></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        All columns NOT listed here will be removed. Column matching is case-insensitive.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" id="confirm-keep-columns">Keep Selected Columns</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div class="modal fade" id="emailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-envelope me-2"></i>Email Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="email-input" class="form-label">Send report to email:</label>
+                        <input type="email" class="form-control" id="email-input" value="chavjain@microsoft.com" placeholder="Enter email address">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        The processed Excel report will be sent as an attachment to this email address.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-send-email">
+                        <i class="bi bi-send me-1"></i>Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

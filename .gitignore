@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+uploads/
+.env
+*.xlsx
+*.xls
+.DS_Store
